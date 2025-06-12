@@ -6,6 +6,7 @@ from components.daily_heatmap_station import generate_daily_heatmap_station
 import plotly.graph_objects as go
 import pandas as pd
 
+
 def layout(page1_map_df):
     fig = mip.generate_montreal_interactive_map(page1_map_df)
     return html.Div([
@@ -56,9 +57,20 @@ def register_callbacks(app):
     )
     def handle_station_click(clickData):
         if clickData:
-            print(clickData)
             point = clickData['points'][0]
             name = point['hovertext']
             station_id = point['customdata'][0]
             return f"📍 Selected Station: {name} (ID: {station_id})"
         return "🧭 Click on a station marker to see details."
+
+    @app.callback(
+        Output('montreal-map', 'figure'),
+        Input('montreal-map', 'clickData'),
+        State('map-data', 'data')
+    )
+    def update_map_on_click(clickData, data):
+        df = pd.DataFrame(data)
+        selected_station_id = None
+        if clickData:
+            selected_station_id = clickData['points'][0]['customdata'][0]
+        return mip.generate_montreal_interactive_map(df, selected_station_id)
