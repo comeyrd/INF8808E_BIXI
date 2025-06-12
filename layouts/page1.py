@@ -5,23 +5,25 @@ from components.bar_chart_nearby_stations import generate_bar_chart_nearby_stati
 from components.daily_heatmap_station import generate_daily_heatmap_station
 import plotly.graph_objects as go
 import pandas as pd
+DEFAULT_STATION_ID = "1"
+DEFAULT_STATION_NAME = "10e avenue / Masson"
 
-
-def layout(page1_map_df):
+def layout(page1_map_df,page1_line_df):
     fig = mip.generate_montreal_interactive_map(page1_map_df)
     return html.Div([
         dcc.Store(id='map-data', data=page1_map_df.to_dict('records')),
+        dcc.Store(id='line-data', data=page1_line_df.to_dict('records')),
         html.Div([
             dcc.Graph(
                 id='montreal-map',
                 figure=fig,
                 style={'height': '80vh'}
-            ),
-            html.Div(id='selected-station-output',
-                     style={'padding': '1rem', 'fontSize': '18px'})
+            )
         ], style={'flex': '1'}),
 
         html.Div([
+            html.Div(id='selected-station-output',
+                     style={'padding': '1rem', 'fontSize': '18px'}),
             dcc.Dropdown(
                 id='viz-selector',
                 options=[
@@ -42,14 +44,24 @@ def layout(page1_map_df):
 def register_callbacks(app):
     @app.callback(
         Output('right-side-viz', 'figure'),
-        Input('viz-selector', 'value')
+        Input('viz-selector', 'value'),
+        Input('montreal-map', 'clickData'),
+        State('line-data', 'data'),
+
     )
-    def update_right_plot(viz_type):
+    def update_right_plot(viz_type,clickData,linedata):
+        linedata_df = pd.DataFrame(linedata)
+
+        station_id = DEFAULT_STATION_ID 
+        name = DEFAULT_STATION_NAME
+        if clickData:
+            station_id = clickData['points'][0]['customdata']
+            name = clickData['points'][0]['hovertext']
         if viz_type == 'bar':
-            return generate_bar_chart_nearby_stations()
+            return generate_bar_chart_nearby_stations(station_id)
         elif viz_type == 'heatmap':
-            return generate_daily_heatmap_station()
-        return generate_line_chart_traffic()
+            return generate_daily_heatmap_station(station_id)
+        return generate_line_chart_traffic(station_id,linedata_df,name)
 
     @app.callback(
         Output('selected-station-output', 'children'),
@@ -59,18 +71,26 @@ def register_callbacks(app):
         if clickData:
             point = clickData['points'][0]
             name = point['hovertext']
-            station_id = point['customdata'][0]
+            station_id = point['customdata']
             return f"📍 Selected Station: {name} (ID: {station_id})"
         return "🧭 Click on a station marker to see details."
 
     @app.callback(
         Output('montreal-map', 'figure'),
         Input('montreal-map', 'clickData'),
-        State('map-data', 'data')
+        State('map-data', 'data'),
+        State('montreal-map', 'relayoutData')
     )
-    def update_map_on_click(clickData, data):
+    def update_map_on_click(clickData, data, relayoutData):
+        selected_station_id = DEFAULT_STATION_ID
+        center = None
+        zoom = None
         df = pd.DataFrame(data)
-        selected_station_id = None
         if clickData:
-            selected_station_id = clickData['points'][0]['customdata'][0]
-        return mip.generate_montreal_interactive_map(df, selected_station_id)
+            selected_station_id = clickData['points'][0]['customdata']
+        if relayoutData:
+            if 'mapbox.center' in relayoutData:
+                center = relayoutData['mapbox.center']
+            if 'mapbox.zoom' in relayoutData:
+                zoom = relayoutData['mapbox.zoom']
+        return mip.generate_montreal_interactive_map(df, selected_station_id, center, zoom)

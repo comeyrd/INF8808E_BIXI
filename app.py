@@ -12,7 +12,7 @@ import layouts.page3 as page3_layout
 app = dash.Dash(__name__, suppress_callback_exceptions=True)
 app.title = 'Projet INF8808 - Réseau Cyclable Montréal'
 server = app.server
-page1_map_df = data_preprocessing.load_and_process_for_page1()
+page1_map_df,page1_line_df = data_preprocessing.load_and_process_for_page1()
 try:
     df_page2_data = data_preprocessing.load_and_process_for_page2()
     df_page3_data = data_preprocessing.load_and_process_for_page3()
@@ -26,9 +26,12 @@ app.layout = html.Div([
     html.Header(children=[
         html.H1("Utilisation du Réseau Cyclable à Montréal"),
         html.Nav(children=[
-            dcc.Link('Accueil (Carte & Trafic)', href='/', className='nav-link'),
-            dcc.Link('Comparaison des Quartiers', href='/page2', className='nav-link'),
-            dcc.Link('Fréquentation Réseau & BIXI', href='/page3', className='nav-link'),
+            dcc.Link('Accueil (Carte & Trafic)',
+                     href='/', className='nav-link'),
+            dcc.Link('Comparaison des Quartiers',
+                     href='/page2', className='nav-link'),
+            dcc.Link('Fréquentation Réseau & BIXI',
+                     href='/page3', className='nav-link'),
         ])
     ], className='app-header'),
 
@@ -39,21 +42,19 @@ app.layout = html.Div([
     ], className='app-footer')
 ])
 
+
 @app.callback(Output('page-content', 'children'),
               Input('url', 'pathname'))
 def display_page(pathname):
     if pathname == '/page2':
-        return page2_layout.layout(
-            data=df_page2_data
-        )
+        return page2_layout.layout(df_page2_data)
     elif pathname == '/page3':
         return page3_layout.layout(
             data=df_page3_data
         )
     else:
-        return page1_layout.layout(
-            page1_map_df=page1_map_df
-        )
-    
+        return page1_layout.layout(page1_map_df=page1_map_df,page1_line_df=page1_line_df)
+
+
 page1_layout.register_callbacks(app)
 page3_layout.register_callbacks(app)
