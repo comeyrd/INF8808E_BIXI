@@ -11,7 +11,7 @@ import layouts.page3 as page3_layout
 
 app = dash.Dash(__name__, suppress_callback_exceptions=True)
 app.title = 'Projet INF8808 - Réseau Cyclable Montréal'
-
+server = app.server
 try:
     df_page1_data = data_preprocessing.load_and_process_for_page1()
     df_page2_data = data_preprocessing.load_and_process_for_page2()
