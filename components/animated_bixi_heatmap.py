@@ -10,7 +10,6 @@ def generate_animated_bixi_heatmap(data=None):
     fig = px.line(df, x='Semaine', y='Passages', title='Carte animée BIXI (démo)')
     fig.update_layout(margin={"r":0,"t":30,"l":0,"b":0})
 
-    print('coucou')
     return fig
 
 def update_animated_bixi_heatmap(fig, param=None):
