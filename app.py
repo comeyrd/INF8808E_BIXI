@@ -13,9 +13,10 @@ app = dash.Dash(__name__, suppress_callback_exceptions=True)
 app.title = 'Projet INF8808 - Réseau Cyclable Montréal'
 server = app.server
 page1_map_df,page1_line_df = data_preprocessing.load_and_process_for_page1()
+page3_viz2_gdf = data_preprocessing.load_and_process_for_page3()
+
 try:
     df_page2_data = data_preprocessing.load_and_process_for_page2()
-    df_page3_data = data_preprocessing.load_and_process_for_page3()
 except Exception as e:
     df_page2_data = {}
     df_page3_data = {}
@@ -50,7 +51,7 @@ def display_page(pathname):
         return page2_layout.layout(df_page2_data)
     elif pathname == '/page3':
         return page3_layout.layout(
-            data=df_page3_data
+            page3_viz2_gdf=page3_viz2_gdf
         )
     else:
         return page1_layout.layout(page1_map_df=page1_map_df,page1_line_df=page1_line_df)

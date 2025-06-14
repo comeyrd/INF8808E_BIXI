@@ -1,3 +1,7 @@
 .venv
 __pycache__
+<<<<<<< HEAD
 test.ipynb
+=======
+.DS_Store
+>>>>>>> origin/main
