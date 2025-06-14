@@ -1,4 +1,4 @@
-id,name,arrondissement,lat,long
+station_id,name,arrondissement,lat,lon
 1,Métro Champ-de-Mars (Viger / Sanguinet),Ville-Marie,45.51025293429709,-73.55677664279938
 2,Métro Place-d'Armes (Viger / St-Urbain),Ville-Marie,45.50631445605528,-73.55967122894072
 3,Émile-Duployé / Sherbrooke,Le Plateau-Mont-Royal,45.52719536319051,-73.5645255446434
