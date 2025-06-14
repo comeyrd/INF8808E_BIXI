@@ -5,6 +5,7 @@ click==8.2.1
 dash==3.0.4
 Flask==3.0.3
 Flask-Failsafe==0.2
+geopy==2.4.0
 geopandas==1.1.0
 gunicorn==23.0.0
 idna==3.10
