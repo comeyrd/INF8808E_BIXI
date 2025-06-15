@@ -18,8 +18,8 @@ page3_viz2_gdf = data_preprocessing.load_and_process_for_page3()
 try:
     df_page2_data = data_preprocessing.load_and_process_for_page2()
 except Exception as e:
+    print("Erreur dans load_and_process_for_page2 :", e)
     df_page2_data = {}
-    df_page3_data = {}
 
 app.layout = html.Div([
     dcc.Location(id='url', refresh=False),
@@ -58,4 +58,5 @@ def display_page(pathname):
 
 
 page1_layout.register_callbacks(app)
+page2_layout.register_callbacks(app, df_page2_data)
 page3_layout.register_callbacks(app)
