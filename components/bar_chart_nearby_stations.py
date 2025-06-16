@@ -50,7 +50,7 @@ def generate_bar_chart_nearby_stations(station_id, map_df, annual_df):
             y=[row['nb_passages']],
             marker_color=row['color'],
             hovertemplate=(
-                f"<b>{row['name']}</b><br>" +
+                f"<b>Station :</b> {row['name']}<br>" +
                 (f"<b>Distance :</b> {row['distance_km']*1000:.0f} m<br>" if row['station_id'] != station_id else "") +
                 f"<b>Passages annuels :</b> {row['nb_passages']:,} passages<extra></extra>"
             )
@@ -65,4 +65,8 @@ def generate_bar_chart_nearby_stations(station_id, map_df, annual_df):
         showlegend=False
     )
 
+    return fig
+
+def update_bar_chart_nearby_stations(fig, param=None):
+    # Pas de mise à jour nécessaire pour le graphique
     return fig
