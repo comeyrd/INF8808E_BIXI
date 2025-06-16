@@ -66,7 +66,7 @@ def generate_radar_chart(data, quartier_nom):
         name=quartier_nom,
         line_color='red',
         customdata=[[val] for val in customdata_quartier],
-        hovertemplate="%{theta}<br>Valeur réelle : %{customdata[0]:.2f}",
+        hovertemplate="%{theta}<br>Valeur réelle : %{customdata[0]:.2f}<extra></extra>",
         mode='lines+markers'
     ))
 

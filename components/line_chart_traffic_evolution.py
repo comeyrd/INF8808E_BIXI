@@ -11,7 +11,9 @@ def generate_line_chart_traffic(station_id,line_chart_df,station_name):
         x=df_station['week_date'],
         y=df_station['nb_passages'],
         mode='lines+markers',
-        name=f'Trafic station {station_id}'
+        name=f'Trafic station {station_id}',
+        line=dict(color='red', width=2),
+        marker=dict(size=6, symbol='circle'),
     ))
 
     fig.update_layout(
