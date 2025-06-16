@@ -1,7 +1,7 @@
 from dash import html, dcc, Input, Output, State
 import components.montreal_interactive_map as mip
 from components.line_chart_traffic_evolution import generate_line_chart_traffic
-from components.bar_chart_nearby_stations import generate_bar_chart_nearby_stations
+from components.bar_chart_nearby_stations import generate_bar_chart_nearby_stations, generate_stacked_bar_chart_nearby_stations
 from components.bar_chart_daily_traffic import generate_bar_chart_daily_traffic
 import pandas as pd
 import data_store
@@ -34,7 +34,21 @@ def layout():
                     {'label': "Fréquentation journalière (1.3)", 'value': 'heatmap'}
                 ],
                 value='line',
-                clearable=False
+                clearable=False,
+                style={'width': '80%', 'display': 'inline-block'}
+            ),
+            html.Div(
+                dcc.RadioItems(
+                    id='bar-mode-selector',
+                    options=[
+                        {'label': 'Total annuel', 'value': 'annual'},
+                        {'label': 'Par mois', 'value': 'stacked_monthly'}
+                    ],
+                    value='annual',
+                    labelStyle={'display': 'inline-block', 'marginLeft': '10px'}
+                ),
+                id='bar-mode-container',
+                style={'display': 'none', 'marginTop': '10px'} # par défaut caché
             ),
             dcc.Graph(
                 id='right-side-viz',
@@ -61,8 +75,10 @@ def register_callbacks(app):
         Output('right-side-viz', 'figure'),
         Input('viz-selector', 'value'),
         Input('montreal-map', 'clickData'),
+        Input('bar-mode-selector', 'value')
+
     )
-    def update_right_plot(viz_type, clickData):
+    def update_right_plot(viz_type, clickData, bar_mode):
         station_id = DEFAULT_STATION_ID
         name = DEFAULT_STATION_NAME
 
@@ -71,15 +87,26 @@ def register_callbacks(app):
             name = clickData['points'][0]['hovertext']
 
         if viz_type == 'bar':
-            map_df = data_store.page1_map_df
-            annual_df = data_store.page1_annual_df
-            return generate_bar_chart_nearby_stations(station_id, map_df, annual_df)
+            if bar_mode == 'annual':
+                return generate_bar_chart_nearby_stations(station_id, data_store.page1_map_df, data_store.page1_annual_df)
+            else:
+                return generate_stacked_bar_chart_nearby_stations(station_id, data_store.page1_map_df, data_store.page1_month_df)
         elif viz_type == 'heatmap':
             day_df = data_store.page1_day_df
             return generate_bar_chart_daily_traffic(station_id, day_df, name)
         else:  # 'line'
             line_df = data_store.page1_line_df
             return generate_line_chart_traffic(station_id, line_df, name)
+        
+    @app.callback(
+        Output('bar-mode-container', 'style'),
+        Input('viz-selector', 'value')
+    )
+    def toggle_bar_mode_visibility(viz_type):
+        if viz_type == 'bar':
+            return {'display': 'block', 'marginTop': '10px'}
+        return {'display': 'none'}
+
 
     @app.callback(
         Output('montreal-map', 'figure'),
