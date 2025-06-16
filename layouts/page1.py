@@ -5,8 +5,8 @@ from components.bar_chart_nearby_stations import generate_bar_chart_nearby_stati
 from components.bar_chart_daily_traffic import generate_bar_chart_daily_traffic
 import pandas as pd
 import data_store
-DEFAULT_STATION_ID = "1"
-DEFAULT_STATION_NAME = "10e avenue / Masson"
+DEFAULT_STATION_ID = "1061"
+DEFAULT_STATION_NAME = "Edouard-Montpetit / de Stirling"
 
 def layout():
     fig = mip.generate_montreal_interactive_map(data_store.page1_map_df)
