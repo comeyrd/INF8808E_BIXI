@@ -1,7 +1,7 @@
 # Deploiement
 ## Créer un service systemd
  
-sudo nano /etc/systemd/system/bixiviz.service
+sudo nano /etc/systemd/system/bixiviz.service  
 
 ``` 
 [Unit]
