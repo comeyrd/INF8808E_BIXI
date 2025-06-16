@@ -71,7 +71,9 @@ def register_callbacks(app):
             name = clickData['points'][0]['hovertext']
 
         if viz_type == 'bar':
-            return generate_bar_chart_nearby_stations(station_id)
+            map_df = data_store.page1_map_df
+            annual_df = data_store.page1_annual_df
+            return generate_bar_chart_nearby_stations(station_id, map_df, annual_df)
         elif viz_type == 'heatmap':
             day_df = data_store.page1_day_df
             return generate_bar_chart_daily_traffic(station_id, day_df, name)
