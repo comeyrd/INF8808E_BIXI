@@ -177,7 +177,7 @@ def load_and_process_for_page3():
 
     df_bixi_index = pd.read_csv("./data/station_information.csv")
     df_bixi_index.rename(columns={"id":"station_id","long":"lon"},inplace=True)
-    df_bixi_index = df_bixi_index[["station_id","lat","lon"]]
+    df_bixi_index = df_bixi_index[["station_id","name", "lat","lon"]]
     df_full_data = pd.merge(df_bixi_week_nbr,df_bixi_index,how="left",on="station_id")
     geometry = [Point(xy) for xy in zip(df_full_data['lon'], df_full_data['lat'])]
     gdf = gpd.GeoDataFrame(df_full_data, geometry=geometry, crs="EPSG:4326")
