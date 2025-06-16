@@ -24,8 +24,17 @@ def load_and_process_for_page1():
         line_chart_df.groupby('station_id', as_index=False)['nb_passages']
         .sum()
     )
+    
+    # Ajouter colonne mois
+    day_df['month'] = day_df['day_date'].dt.month
 
-    return map_df, line_chart_df, day_df, annual_df
+    # Somme des passages par station et par mois
+    monthly_df = (
+        day_df.groupby(['station_id', 'month'], as_index=False)['nb_passages']
+        .sum()
+    )
+
+    return map_df, line_chart_df, day_df, annual_df, monthly_df
 
 
 def load_and_process_for_page2():
@@ -168,7 +177,7 @@ def load_and_process_for_page3():
 
     df_bixi_index = pd.read_csv("./data/station_information.csv")
     df_bixi_index.rename(columns={"id":"station_id","long":"lon"},inplace=True)
-    df_bixi_index = df_bixi_index[["station_id","lat","lon"]]
+    df_bixi_index = df_bixi_index[["station_id","name", "lat","lon"]]
     df_full_data = pd.merge(df_bixi_week_nbr,df_bixi_index,how="left",on="station_id")
     geometry = [Point(xy) for xy in zip(df_full_data['lon'], df_full_data['lat'])]
     gdf = gpd.GeoDataFrame(df_full_data, geometry=geometry, crs="EPSG:4326")
