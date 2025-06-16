@@ -2,9 +2,8 @@ import plotly.express as px
 import pandas as pd
 import numpy as np
 
-
 def generate_animated_bixi_heatmap(gdf):
-    fig = px.density_map(
+    fig = px.density_mapbox(
         gdf,
         lat='lat',
         lon='lon',
@@ -16,11 +15,12 @@ def generate_animated_bixi_heatmap(gdf):
         range_color=[0, gdf['nb_passages'].max()],
         color_continuous_scale=px.colors.sequential.Turbo,
         hover_data=['station_id', 'nb_passages'],
+        mapbox_style="open-street-map",
         title="Nombre de passages par station Bixi - Animation hebdomadaire"
     )
 
+    # Animation speed
     fig.layout.updatemenus[0].buttons[0].args[1]['frame']['duration'] = 200
-    # Optional: no delay between
     fig.layout.updatemenus[0].buttons[0].args[1]['transition']['duration'] = 0
     fig.layout.sliders[0]['transition']['duration'] = 0
 
@@ -28,9 +28,11 @@ def generate_animated_bixi_heatmap(gdf):
         title="Nombre de passages par station Bixi - Animation hebdomadaire",
         title_font_size=20,
         title_x=0.5,
-        height=700 
+        height=700,
+        margin=dict(l=0, r=0, t=50, b=0)
     )
     return fig
+
 
 def update_animated_bixi_heatmap(fig, param=None):
     return fig
