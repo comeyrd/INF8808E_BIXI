@@ -24,8 +24,17 @@ def load_and_process_for_page1():
         line_chart_df.groupby('station_id', as_index=False)['nb_passages']
         .sum()
     )
+    
+    # Ajouter colonne mois
+    day_df['month'] = day_df['day_date'].dt.month
 
-    return map_df, line_chart_df, day_df, annual_df
+    # Somme des passages par station et par mois
+    monthly_df = (
+        day_df.groupby(['station_id', 'month'], as_index=False)['nb_passages']
+        .sum()
+    )
+
+    return map_df, line_chart_df, day_df, annual_df, monthly_df
 
 
 def load_and_process_for_page2():
