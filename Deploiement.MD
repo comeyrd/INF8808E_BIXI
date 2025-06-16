@@ -3,7 +3,7 @@
 
 sudo nano /etc/systemd/system/bixiviz.service
 
-```
+``` 
 [Unit]
 Description=Gunicorn instance to serve bixiviz
 After=network.target
