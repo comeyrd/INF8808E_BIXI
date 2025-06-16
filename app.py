@@ -12,7 +12,7 @@ import layouts.page3 as page3_layout
 app = dash.Dash(__name__, suppress_callback_exceptions=True)
 app.title = 'Projet INF8808 - Réseau Cyclable Montréal'
 server = app.server
-page1_map_df,page1_line_df = data_preprocessing.load_and_process_for_page1()
+page1_map_df,page1_line_df, page1_day_df = data_preprocessing.load_and_process_for_page1()
 page3_viz2_gdf = data_preprocessing.load_and_process_for_page3()
 
 try:
@@ -54,7 +54,8 @@ def display_page(pathname):
             page3_viz2_gdf=page3_viz2_gdf
         )
     else:
-        return page1_layout.layout(page1_map_df=page1_map_df,page1_line_df=page1_line_df)
+        return page1_layout.layout(page1_map_df=page1_map_df,page1_line_df=page1_line_df, page1_day_df = page1_day_df)
+
 
 
 page1_layout.register_callbacks(app)
