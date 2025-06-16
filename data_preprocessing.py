@@ -12,7 +12,13 @@ def load_and_process_for_page1():
     line_chart_df['week_date'] = pd.to_datetime(line_chart_df['week'], unit='ms')
     line_chart_df["station_id_s"] = line_chart_df['station_id'].astype(str)
     line_chart_df = line_chart_df.sort_values('week_date')
-    return map_df,line_chart_df
+
+    day_df = pd.read_csv('./data/bixi_comptage_day_2024.csv')
+    day_df['day_date'] = pd.to_datetime(day_df['day'], unit='ms')
+    day_df["station_id_s"] = day_df['station_id'].astype(str)
+    day_df = day_df.sort_values('day_date')
+
+    return map_df,line_chart_df, day_df
 
 def load_and_process_for_page2():
     stations = pd.read_csv("./data/station_information.csv")  
