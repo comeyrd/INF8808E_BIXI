@@ -12,14 +12,6 @@ import layouts.page3 as page3_layout
 app = dash.Dash(__name__, suppress_callback_exceptions=True)
 app.title = 'Projet INF8808 - Réseau Cyclable Montréal'
 server = app.server
-page1_map_df,page1_line_df, page1_day_df = data_preprocessing.load_and_process_for_page1()
-page3_viz2_gdf = data_preprocessing.load_and_process_for_page3()
-
-try:
-    df_page2_data = data_preprocessing.load_and_process_for_page2()
-except Exception as e:
-    print("Erreur dans load_and_process_for_page2 :", e)
-    df_page2_data = {}
 
 app.layout = html.Div([
     dcc.Location(id='url', refresh=False),
@@ -48,16 +40,15 @@ app.layout = html.Div([
               Input('url', 'pathname'))
 def display_page(pathname):
     if pathname == '/page2':
-        return page2_layout.layout(df_page2_data)
+        return page2_layout.layout()
     elif pathname == '/page3':
         return page3_layout.layout(
-            page3_viz2_gdf=page3_viz2_gdf
         )
     else:
-        return page1_layout.layout(page1_map_df=page1_map_df,page1_line_df=page1_line_df, page1_day_df = page1_day_df)
+        return page1_layout.layout()
 
 
 
 page1_layout.register_callbacks(app)
-page2_layout.register_callbacks(app, df_page2_data)
+page2_layout.register_callbacks(app)
 page3_layout.register_callbacks(app)

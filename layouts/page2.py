@@ -1,21 +1,21 @@
 from dash import html, dcc, Input, Output
 from components.radar_chart_district_comparison import generate_radar_chart
-
-def layout(data):
+import data_store
+def layout():
     return html.Div([
         html.H2("Comparaison des Arrondissements de Montréal", className="section-title"),
         dcc.Dropdown(
-            options=[{"label": arr, "value": arr} for arr in data["arrondissement"]],
-            value=data["arrondissement"].iloc[0],
+            options=[{"label": arr, "value": arr} for arr in data_store.df_page2_data["arrondissement"]],
+            value=data_store.df_page2_data["arrondissement"].iloc[0],
             id="quartier-dropdown"
         ),
         dcc.Graph(id='radar-chart')
     ], className='page-content')
 
-def register_callbacks(app, data):
+def register_callbacks(app):
     @app.callback(
         Output("radar-chart", "figure"),
         Input("quartier-dropdown", "value")
     )
     def update_radar(quartier_nom):
-        return generate_radar_chart(data, quartier_nom)
+        return generate_radar_chart(data_store.df_page2_data, quartier_nom)

@@ -4,16 +4,14 @@ from components.line_chart_traffic_evolution import generate_line_chart_traffic
 from components.bar_chart_nearby_stations import generate_bar_chart_nearby_stations
 from components.bar_chart_daily_traffic import generate_bar_chart_daily_traffic
 import pandas as pd
-
+import data_store
 DEFAULT_STATION_ID = "1"
 DEFAULT_STATION_NAME = "10e avenue / Masson"
 
-def layout(page1_map_df, page1_line_df, page1_day_df):
-    fig = mip.generate_montreal_interactive_map(page1_map_df)
+def layout():
+    fig = mip.generate_montreal_interactive_map(data_store.page1_map_df)
     return html.Div([
-        dcc.Store(id='map-data', data=page1_map_df.to_dict('records')),
-        dcc.Store(id='line-data', data=page1_line_df.to_dict('records')),
-        dcc.Store(id='day-data', data=page1_day_df.to_dict('records')),
+
 
         html.Div([
             dcc.Graph(
@@ -63,10 +61,8 @@ def register_callbacks(app):
         Output('right-side-viz', 'figure'),
         Input('viz-selector', 'value'),
         Input('montreal-map', 'clickData'),
-        State('line-data', 'data'),
-        State('day-data', 'data')
     )
-    def update_right_plot(viz_type, clickData, linedata, daydata):
+    def update_right_plot(viz_type, clickData):
         station_id = DEFAULT_STATION_ID
         name = DEFAULT_STATION_NAME
 
@@ -77,23 +73,22 @@ def register_callbacks(app):
         if viz_type == 'bar':
             return generate_bar_chart_nearby_stations(station_id)
         elif viz_type == 'heatmap':
-            day_df = pd.DataFrame(daydata)
+            day_df = data_store.page1_day_df
             return generate_bar_chart_daily_traffic(station_id, day_df, name)
         else:  # 'line'
-            line_df = pd.DataFrame(linedata)
+            line_df = data_store.page1_line_df
             return generate_line_chart_traffic(station_id, line_df, name)
 
     @app.callback(
         Output('montreal-map', 'figure'),
         Input('montreal-map', 'clickData'),
-        State('map-data', 'data'),
         State('montreal-map', 'relayoutData')
     )
-    def update_map_on_click(clickData, data, relayoutData):
+    def update_map_on_click(clickData, relayoutData):
         selected_station_id = DEFAULT_STATION_ID
         center = None
         zoom = None
-        df = pd.DataFrame(data)
+        df = data_store.page1_map_df
 
         if clickData:
             selected_station_id = clickData['points'][0]['customdata']
