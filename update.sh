@@ -15,7 +15,7 @@ REMOTE=$(git rev-parse "origin/$BRANCH")
 if [ "$LOCAL" != "$REMOTE" ]; then
   echo "[$(date)] New updates found. Pulling and restarting..."
   git reset --hard "origin/$BRANCH"
-  $REPO_DIR/.venv/bin/pip install -r requirements
+  $REPO_DIR/.venv/bin/pip install -q -q -r requirements.txt
   sudo systemctl restart "$SERVICE_NAME"
   echo "Restarting done ! "
 else
