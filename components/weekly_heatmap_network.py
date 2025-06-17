@@ -3,19 +3,34 @@ import plotly.express as px
 from shapely.geometry import box
 from shapely.ops import unary_union
 import plotly.graph_objects as go
+import numpy as np
 
 
-def generate_weekly_network_heatmap(df_day, heatmap_data, ticks, labels, selected_week=None):
+def generate_weekly_network_heatmap(df_day, heatmap_data, mois_separateurs, selected_week=None):
+    z = heatmap_data.values.astype(float)  # Assure un tableau float
+    z[z == 0] = np.nan  # Ignore les zéros dans l'affichage
+
     fig = go.Figure(data=go.Heatmap(
-        z=heatmap_data.values,
+        z=z,
         x=heatmap_data.columns,
         y=heatmap_data.index,
         colorscale='Reds',
         hovertemplate="<br>Jour : %{y}<br>Passages : %{z}<extra></extra>",
         showscale=True,
         xgap=2,
-        ygap=2
+        ygap=2,
+        zmin=np.nanmin(z),  # Échelle basée uniquement sur les vraies valeurs
+        zmax=np.nanmax(z)
     ))
+    
+    for x_pos in mois_separateurs:
+        fig.add_shape(
+            type="line",
+            x0=x_pos, x1=x_pos,
+            y0=-0.5, y1=6.5,
+            line=dict(color="black", width=2),
+            xref="x", yref="y"
+        )
 
     fig.update_layout(
         title_text="Fréquentation quotidienne du réseau cyclable en 2024",
@@ -24,9 +39,8 @@ def generate_weekly_network_heatmap(df_day, heatmap_data, ticks, labels, selecte
         xaxis=dict(
             title="",
             showgrid=False,
-            tickmode="array",
-            tickvals=list(ticks.values()),
-            ticktext=list(labels.values()),
+            tickangle=45,        # Incliner les labels pour éviter le chevauchement
+            automargin=True,
             showline=False
         ),
         yaxis=dict(
@@ -43,6 +57,7 @@ def generate_weekly_network_heatmap(df_day, heatmap_data, ticks, labels, selecte
         dragmode=False
     )
 
+
     if selected_week is not None:
         fig.add_shape(
             type="rect",
@@ -52,7 +67,7 @@ def generate_weekly_network_heatmap(df_day, heatmap_data, ticks, labels, selecte
             y1=6.5,
             xref='x',
             yref='y',
-            line=dict(color='black', width=2),
+            line=dict(color='black', width=4),
             fillcolor='rgba(0,0,0,0)',
             layer='above'
         )
@@ -60,30 +75,34 @@ def generate_weekly_network_heatmap(df_day, heatmap_data, ticks, labels, selecte
     return fig
 
 
-def generate_bar_chart(df_day, week_number):
-    d = df_day[df_day["Semaine"] == week_number].copy()
+def generate_bar_chart(df_day, week_number, gloabal_max=100, gloabal_min=0):
+    d = df_day[df_day["WeekIndex"] == week_number].copy()
     if d.empty:
         return px.bar(title=f"Aucune donnée pour la semaine {week_number}")
-
+    
     jours_fr = ["Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi", "Dimanche"]
-    d["Weekday"] = d["Date"].dt.weekday
-    d["JourNum"] = d["Date"].dt.strftime("%d")
-    d["WeekdayName"] = d["Weekday"].map(lambda i: jours_fr[i]) + " " + d["JourNum"]
+    mois_fr = ["Janvier", "Février", "Mars", "Avril", "Mai", "Juin",
+            "Juillet", "Août", "Septembre", "Octobre", "Novembre", "Décembre"]
 
+    d["x_label"] = d.apply(
+        lambda row: f"{jours_fr[row['Jour']]} {row['JourNum']} {mois_fr[row['Mois'] - 1]}", axis=1
+    )
+    
     agg = (
-        d.groupby(["Weekday", "WeekdayName"])["Count"]
+        d.groupby(["Jour", "x_label"])["nb_passages"]
         .sum()
         .reset_index()
-        .sort_values("Weekday")
+        .sort_values("Jour")
     )
 
     fig = px.bar(
         agg,
-        x="WeekdayName",
-        y="Count",
-        color="Count",
-        text="Count",
+        x="x_label",
+        y="nb_passages",
+        color="nb_passages",
+        text="nb_passages",
         color_continuous_scale="Reds",
+        range_color=[gloabal_min, gloabal_max],
         title=None
     )
 

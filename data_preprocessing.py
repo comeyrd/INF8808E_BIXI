@@ -187,41 +187,54 @@ def load_and_process_for_page3():
 
 
     jours_fr_abbr = ["Lun", "Mar", "Mer", "Jeu", "Ven", "Sam", "Dim"]
+    jours_fr = ["Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi", "Dimanche"]
     mois_fr = ["Jan", "Fév", "Mar", "Avr", "Mai", "Juin", "Juil", "Aoû", "Sep", "Oct", "Nov", "Déc"]
 
-    df_day = pd.read_csv("data/bixi_comptage_day_2024.csv")
-    df_day["Date"] = pd.to_datetime(df_day["day"], unit="ms")
-    df_day["Count"] = df_day["nb_passages"]
-    df_day["WeekIndex"] = (df_day["Date"] - pd.Timestamp("2024-01-01")).dt.days // 7
-    df_day["Weekday"] = df_day["Date"].dt.dayofweek
-    df_day["WeekdayName"] = df_day["Date"].dt.strftime("%A %d")
-    df_day["Semaine"] = df_day["Date"].dt.isocalendar().week + 1
-    df_day["JourSemaine"] = df_day["Date"].dt.weekday
-    df_day["Jour"] = df_day["Date"].dt.day
+    df = pd.read_csv("data/bixi_comptage_day_2024.csv")
+
+    df["Date"] = pd.to_datetime(df["day"], unit='ms')
+    df_day = df.groupby("Date")["station_id"].sum().reset_index(name="nb_passages")
+
+    # Supprimer les dates hors 2024
+    df_day = df_day[df_day["Date"].dt.year == 2024].copy()
+
+    # Ajouter les infos temporelles
+    df_day["WeekIndex"] = df_day["Date"].dt.isocalendar().week
+    df_day["Jour"] = df_day["Date"].dt.weekday
+    df_day["JourNum"] = df_day["Date"].dt.day
     df_day["Mois"] = df_day["Date"].dt.month
-    df_day["MoisStr"] = df_day["Mois"].map(lambda i: mois_fr[i - 1])
-    df_day["JourSemaineStr"] = pd.Categorical(
-        df_day["JourSemaine"].map(lambda i: jours_fr_abbr[i]),
-        categories=jours_fr_abbr,
-        ordered=True
+
+    # ⚠️ Corriger les jours de fin décembre ayant WeekIndex=1 → on force à 53
+    mask_end_dec = (df_day["Mois"] == 12) & (df_day["JourNum"] >= 30)
+    df_day.loc[mask_end_dec, "WeekIndex"] = 53
+
+    # Ajouter noms français
+    df_day["MoisStr"] = df_day["Mois"].apply(lambda x: mois_fr[x - 1])
+    df_day["JourStr"] = df_day["Jour"].apply(lambda x: jours_fr_abbr[x])
+    df_day["x_label"] = df_day.apply(
+        lambda row: f"{row['JourStr']} {row['JourNum']} {row['MoisStr']}", axis=1
     )
-    df_day["WeekIndex"] = (df_day["Date"] - pd.Timestamp("2024-01-01")).dt.days // 7
-    
-    df_day["WeekIndex"] = df_day["WeekIndex"].astype("int8")
-    df_day["JourSemaine"] = df_day["JourSemaine"].astype("int8")
-    df_day["Semaine"] = df_day["Semaine"].astype("int8")
-    df_day["nb_passages"] = df_day["nb_passages"].astype("int32")
-    
+
+    # Liste ordonnée des jours de la semaine (0=Lun, 6=Dim)
+    jours_fr_ordered = ["Lun", "Mar", "Mer", "Jeu", "Ven", "Sam", "Dim"]
+    # S'assurer que 'JourStr' est une catégorie ordonnée
+    df_day["JourStr"] = pd.Categorical(df_day["JourStr"], categories=jours_fr_ordered, ordered=True)
 
     heatmap_data = df_day.pivot_table(
-        index="JourSemaineStr",  # lignes = jours de semaine
-        columns="Semaine",       # colonnes = semaines
+        index="JourStr",
+        columns="WeekIndex",
         values="nb_passages",
         aggfunc="sum",
         fill_value=0,
-        observed=False)
+        observed=False
+    )
     
-    mois_ticks = df_day.groupby("Mois")["Semaine"].median().astype(int).to_dict()
-    mois_labels = df_day.groupby("Mois")["MoisStr"].first().to_dict()
+    # Trouver les x_labels où le mois change
+    df_day_sorted = df_day.sort_values("Date")
+    month_change_labels = df_day_sorted[df_day_sorted["Mois"].diff().fillna(0) != 0]["x_label"].tolist()
 
-    return gdf, df_day, heatmap_data, mois_ticks, mois_labels
+    # Indices des colonnes dans la heatmap
+    mois_separateurs = [heatmap_data.columns.get_loc(label) - 0.5 for label in month_change_labels if label in heatmap_data.columns]
+
+
+    return gdf, df_day, heatmap_data, mois_separateurs

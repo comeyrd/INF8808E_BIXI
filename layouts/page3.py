@@ -47,9 +47,8 @@ def register_callbacks(app):
 
         df_day = data_store.page3_df_day
         heatmap_data = data_store.page3_heatmap_data
-        mois_ticks = data_store.mois_ticks
-        mois_labels = data_store.mois_labels
-        return generate_weekly_network_heatmap(df_day, heatmap_data, mois_ticks, mois_labels, selected_week)
+        mois_separateurs = data_store.page3_mois_separateurs
+        return generate_weekly_network_heatmap(df_day, heatmap_data, mois_separateurs, selected_week)
 
         
     @app.callback(
@@ -73,6 +72,7 @@ def register_callbacks(app):
 
         if selected_viz != 'heatmap' or week is None:
             return {}, {'display': 'none'}
-        
-        fig = generate_bar_chart(df_day, week)
-        return fig, {'display': 'block'}
+        global_min = df_day["nb_passages"].min()
+        global_max = df_day["nb_passages"].max()
+        fig_bar = generate_bar_chart(df_day, week, global_max, global_min)
+        return fig_bar, {'display': 'block'}
