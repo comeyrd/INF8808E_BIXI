@@ -30,14 +30,7 @@ def layout():
                 dcc.Graph(id='page3-viz-display')
             ]
         ),
-        dcc.Loading(
-            id="loading-bar-chart",
-            type="circle",  # ou 'dot', 'default'
-            color="#b71c1c",  # Couleur de l'animation
-            children=[
-                dcc.Graph(id='page3-bar-chart', style={'display': 'none'})
-            ]
-        )
+        dcc.Graph(id='page3-bar-chart', style={'display': 'none'})
     ], className='page-content')
 
 
