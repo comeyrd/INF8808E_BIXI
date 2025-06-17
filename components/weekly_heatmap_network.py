@@ -6,51 +6,44 @@ import plotly.graph_objects as go
 
 
 def generate_weekly_network_heatmap(df_day, heatmap_data, ticks, labels, selected_week=None):
-
-    fig = px.imshow(
-        heatmap_data.values,
+    fig = go.Figure(data=go.Heatmap(
+        z=heatmap_data.values,
         x=heatmap_data.columns,
         y=heatmap_data.index,
-        color_continuous_scale="Reds",
-        labels=dict(color="Passages"),
-        aspect="auto"
-    )
-
+        colorscale='Reds',
+        hovertemplate="<br>Jour : %{y}<br>Passages : %{z}<extra></extra>",
+        showscale=True,
+        xgap=2,  # séparation horizontale
+        ygap=2   # séparation verticale
+    ))
 
     fig.update_layout(
-        xaxis_title="", yaxis_title="",
-        plot_bgcolor='white', paper_bgcolor='white',
-        coloraxis_colorbar=dict(title=None),
-        xaxis=dict(showgrid=False),
-        yaxis=dict(showgrid=False),
         title_text="Fréquentation quotidienne du réseau cyclable en 2024",
         title_x=0.5,
         title_font=dict(size=20),
-        dragmode=False,
-        
+        xaxis=dict(
+            title="",
+            showgrid=False,
+            tickmode="array",
+            tickvals=list(ticks.values()),
+            ticktext=list(labels.values()),
+            showline=False
+        ),
+        yaxis=dict(
+            title="",
+            tickmode="array",
+            tickvals=list(range(len(heatmap_data.index))),
+            ticktext=heatmap_data.index,
+            showgrid=False,
+            scaleanchor="x",
+            scaleratio=1
+        ),
+        plot_bgcolor='white',
+        paper_bgcolor='white',
+        dragmode=False
     )
 
-    fig.update_traces(xgap=2, ygap=1, dx=1, dy=1)  # ESPACEMENT horizontal & vertical entre les cases
-
-    fig.update_yaxes(
-        title=None,
-        tickmode="array",
-        tickvals=list(range(len(heatmap_data.index))),
-        ticktext=heatmap_data.index,
-        showgrid=False,
-        scaleanchor="x",
-        scaleratio=1
-    )
-
-    fig.update_xaxes(
-        tickmode="array",
-        tickvals=list(ticks.values()),
-        ticktext=list(labels.values()),
-        showline=False
-    )
-
-
-    # ✅ Rectangle ajusté à une colonne (case)
+    # Ajouter rectangle de sélection
     if selected_week is not None:
         fig.add_shape(
             type="rect",
@@ -66,6 +59,7 @@ def generate_weekly_network_heatmap(df_day, heatmap_data, ticks, labels, selecte
         )
 
     return fig
+
 
 
 def generate_bar_chart(df_day, week_index):
