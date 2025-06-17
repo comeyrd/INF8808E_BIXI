@@ -30,26 +30,23 @@ def generate_weekly_network_heatmap(df_day, heatmap_data, ticks, labels, selecte
         
     )
 
-    # ✅ Ajouter des espaces entre les jours
-    fig.update_xaxes(showline=False, tickmode="array", tickvals=heatmap_data.columns)
-    fig.update_yaxes(tickmode="array", tickvals=list(range(len(heatmap_data.index))), ticktext=heatmap_data.index)
-    fig.update_traces(xgap=2, ygap=2)  # ESPACEMENT horizontal & vertical entre les cases
-    fig.update_yaxes(scaleanchor="x", scaleratio=1)
+    fig.update_traces(xgap=2, ygap=1, dx=1, dy=1)  # ESPACEMENT horizontal & vertical entre les cases
 
-
-    # ✅ Axe Y : jours abrégés
     fig.update_yaxes(
         title=None,
         tickmode="array",
         tickvals=list(range(len(heatmap_data.index))),
         ticktext=heatmap_data.index,
-        showgrid=False
+        showgrid=False,
+        scaleanchor="x",
+        scaleratio=1
     )
 
     fig.update_xaxes(
         tickmode="array",
         tickvals=list(ticks.values()),
         ticktext=list(labels.values()),
+        showline=False
     )
 
 
