@@ -2,17 +2,11 @@ import pandas as pd
 import plotly.express as px
 from shapely.geometry import box
 from shapely.ops import unary_union
+import plotly.graph_objects as go
 
 
-def generate_weekly_network_heatmap(df_day, selected_week=None):
-    heatmap_data = df_day.pivot_table(
-        index="JourSemaineStr",  # lignes = jours de semaine
-        columns="Semaine",       # colonnes = semaines
-        values="nb_passages",
-        aggfunc="sum",
-        fill_value=0,
-        observed=False)
-    
+def generate_weekly_network_heatmap(df_day, heatmap_data, selected_week=None):
+
     fig = px.imshow(
         heatmap_data.values,
         x=heatmap_data.columns,
@@ -21,6 +15,7 @@ def generate_weekly_network_heatmap(df_day, selected_week=None):
         labels=dict(color="Passages"),
         aspect="auto"
     )
+
 
     fig.update_layout(
         xaxis_title="", yaxis_title="",
@@ -126,7 +121,10 @@ def generate_bar_chart(df_day, week_index):
         paper_bgcolor='rgba(0,0,0,0)'
     )
 
-    fig.update_traces(hovertemplate=None, hoverinfo='skip')
+    fig.update_traces(
+        hoverinfo='skip',
+        selector=dict(type='heatmap')
+    )
 
 
     return fig

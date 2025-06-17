@@ -3,7 +3,7 @@ from components.radar_chart_district_comparison import generate_radar_chart
 import data_store
 def layout():
     return html.Div([
-        html.H2("Comparaison des Arrondissements de Montréal", className="section-title"),
+        html.H2("Comparaison des arrondissements de Montréal", className="section-title"),
         dcc.Dropdown(
             options=[{"label": arr, "value": arr} for arr in data_store.df_page2_data["arrondissement"]],
             value=data_store.df_page2_data["arrondissement"].iloc[0],

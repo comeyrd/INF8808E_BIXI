@@ -206,6 +206,19 @@ def load_and_process_for_page3():
         ordered=True
     )
     df_day["WeekIndex"] = (df_day["Date"] - pd.Timestamp("2024-01-01")).dt.days // 7
+    
+    df_day["WeekIndex"] = df_day["WeekIndex"].astype("int8")
+    df_day["JourSemaine"] = df_day["JourSemaine"].astype("int8")
+    df_day["Semaine"] = df_day["Semaine"].astype("int8")
+    df_day["nb_passages"] = df_day["nb_passages"].astype("int32")
+    
 
+    heatmap_data = df_day.pivot_table(
+        index="JourSemaineStr",  # lignes = jours de semaine
+        columns="Semaine",       # colonnes = semaines
+        values="nb_passages",
+        aggfunc="sum",
+        fill_value=0,
+        observed=False)
 
-    return gdf, df_day
+    return gdf, df_day, heatmap_data

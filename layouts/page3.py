@@ -9,18 +9,18 @@ import data_store
 
 def layout():
     return html.Div([
-        html.H2("Fréquentation du Réseau Cyclable & BIXI", className="section-title"),
+        html.H2("Fréquentation du réseau cyclable et BIXI toute l'année 2024", className="section-title"),
         dcc.Dropdown(
             id='page3-viz-selector',
             options=[
-                {'label': "Heatmap du réseau (3.1)", 'value': 'heatmap'},
+                {'label': "Affluence journalier (3.1)", 'value': 'heatmap'},
                 {'label': "Carte animée BIXI (3.2)", 'value': 'bixi'}
             ],
             value='heatmap',
             clearable=False
         ),
         dcc.Graph(id='page3-viz-display'),
-        dcc.Graph(id='page3-bar-chart', style={'display': 'none'})
+        dcc.Graph(id='page3-bar-chart', style={'display': 'none'}, config={'staticPlot': True})
     ], className='page-content')
 
 
@@ -36,12 +36,14 @@ def register_callbacks(app):
         if selected_viz == 'bixi':
             gdf = data_store.page3_viz2_gdf
             return generate_animated_bixi_heatmap(gdf), {}, {'display': 'none'}
-
+        
+        df_day = data_store.page3_df_day
+        heatmap_data = data_store.page3_heatmap_data
         week = int(clickData['points'][0]['x']) if clickData else None
-        fig_heatmap = generate_weekly_network_heatmap(data_store.page3_df_day, selected_week=week)
+        fig_heatmap = generate_weekly_network_heatmap(df_day, heatmap_data, selected_week=week)
 
         if week is not None:
-            fig_bar = generate_bar_chart(data_store.page3_df_day, week)
+            fig_bar = generate_bar_chart(df_day, week)
             return fig_heatmap, fig_bar, {'display': 'block'}
         else:
             return fig_heatmap, no_update, {'display': 'none'}
@@ -50,7 +52,8 @@ def register_callbacks(app):
 
 
     def update_bar_chart(clickData, selected_viz):
+        df_day = data_store.page3_df_day
         if selected_viz != 'heatmap' or not clickData:
-            return generate_bar_chart(data_store.page3_df_day, 0)  # par défaut, ou vide
+            return generate_bar_chart(df_day, 0)  # par défaut, ou vide
         week = int(clickData['points'][0]['x'])  # 'x' = WeekIndex
-        return generate_bar_chart(data_store.page3_df_day, week)
+        return generate_bar_chart(df_day, week)
