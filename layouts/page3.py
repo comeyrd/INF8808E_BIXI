@@ -19,41 +19,51 @@ def layout():
             value='heatmap',
             clearable=False
         ),
+
+        dcc.Store(id='page3-selected-week', storage_type='memory'),
+
         dcc.Graph(id='page3-viz-display'),
-        dcc.Graph(id='page3-bar-chart', style={'display': 'none'}, config={'staticPlot': True})
+        dcc.Graph(id='page3-bar-chart', style={'display': 'none'}, config={'staticPlot': True}),
     ], className='page-content')
 
 
 def register_callbacks(app):
     @app.callback(
         Output('page3-viz-display', 'figure'),
-        Output('page3-bar-chart', 'figure'),
-        Output('page3-bar-chart', 'style'),
         Input('page3-viz-selector', 'value'),
-        Input('page3-viz-display', 'clickData')
+        Input('page3-selected-week', 'data'),
     )
-    def update_page3_viz(selected_viz, clickData):
+    def update_page3_viz_main(selected_viz, selected_week):
         if selected_viz == 'bixi':
             gdf = data_store.page3_viz2_gdf
-            return generate_animated_bixi_heatmap(gdf), {}, {'display': 'none'}
-        
+            return generate_animated_bixi_heatmap(gdf)
+
         df_day = data_store.page3_df_day
         heatmap_data = data_store.page3_heatmap_data
-        week = int(clickData['points'][0]['x']) if clickData else None
-        fig_heatmap = generate_weekly_network_heatmap(df_day, heatmap_data, selected_week=week)
+        return generate_weekly_network_heatmap(df_day, heatmap_data, selected_week=selected_week)
 
-        if week is not None:
-            fig_bar = generate_bar_chart(df_day, week)
-            return fig_heatmap, fig_bar, {'display': 'block'}
-        else:
-            return fig_heatmap, no_update, {'display': 'none'}
+        
+    @app.callback(
+        Output('page3-selected-week', 'data'),
+        Input('page3-viz-display', 'clickData'),
+        State('page3-viz-selector', 'value')
+    )
+    def store_selected_week(clickData, selected_viz):
+        if selected_viz != 'heatmap' or clickData is None:
+            return None
+        return int(clickData['points'][0]['x'])
 
-
-
-
-    def update_bar_chart(clickData, selected_viz):
+    @app.callback(
+        Output('page3-bar-chart', 'figure'),
+        Output('page3-bar-chart', 'style'),
+        Input('page3-selected-week', 'data'),
+        State('page3-viz-selector', 'value')
+    )
+    def update_bar_chart(week, selected_viz):
         df_day = data_store.page3_df_day
-        if selected_viz != 'heatmap' or not clickData:
-            return generate_bar_chart(df_day, 0)  # par défaut, ou vide
-        week = int(clickData['points'][0]['x'])  # 'x' = WeekIndex
-        return generate_bar_chart(df_day, week)
+
+        if selected_viz != 'heatmap' or week is None:
+            return {}, {'display': 'none'}
+        
+        fig = generate_bar_chart(df_day, week)
+        return fig, {'display': 'block'}
