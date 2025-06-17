@@ -45,3 +45,38 @@ body {
     background-color: #b71c1c;
     color: white;
 }
+
+/* assets/style.css */
+
+.main-container {
+    display: flex;
+    flex-direction: row;
+    height: 85vh;
+    padding: 10px;
+}
+
+.main-container > div {
+    flex: 1;
+}
+
+/* Responsive mode: mobile view */
+@media screen and (max-width: 768px) {
+    .main-container {
+        flex-direction: column;
+        height: auto;
+    }
+
+    .main-container > div {
+        margin-left: 0 !important; /* Pour annuler le marginLeft du deuxième div */
+        margin-top: 20px;
+    }
+}
+.right-panel {
+    margin-left: 20px;
+}
+
+@media screen and (max-width: 768px) {
+    .right-panel {
+        margin-left: 0;
+    }
+}
