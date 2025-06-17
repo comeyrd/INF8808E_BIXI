@@ -40,7 +40,9 @@ def register_callbacks(app):
 
         df_day = data_store.page3_df_day
         heatmap_data = data_store.page3_heatmap_data
-        return generate_weekly_network_heatmap(df_day, heatmap_data, selected_week=selected_week)
+        mois_ticks = data_store.mois_ticks
+        mois_labels = data_store.mois_labels
+        return generate_weekly_network_heatmap(df_day, heatmap_data, mois_ticks, mois_labels, selected_week)
 
         
     @app.callback(

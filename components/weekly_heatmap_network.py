@@ -5,7 +5,7 @@ from shapely.ops import unary_union
 import plotly.graph_objects as go
 
 
-def generate_weekly_network_heatmap(df_day, heatmap_data, selected_week=None):
+def generate_weekly_network_heatmap(df_day, heatmap_data, ticks, labels, selected_week=None):
 
     fig = px.imshow(
         heatmap_data.values,
@@ -46,18 +46,12 @@ def generate_weekly_network_heatmap(df_day, heatmap_data, selected_week=None):
         showgrid=False
     )
 
-
-    # ✅ Axe X : afficher les mois centrés
-    mois_ticks = df_day.groupby("Mois")["Semaine"].median().astype(int)
-    mois_labels = df_day.groupby("Mois")["MoisStr"].first()
-
     fig.update_xaxes(
         tickmode="array",
-        tickvals=mois_ticks,
-        ticktext=mois_labels,
-        title=None,
-        showgrid=False
+        tickvals=list(ticks.values()),
+        ticktext=list(labels.values()),
     )
+
 
     # ✅ Rectangle ajusté à une colonne (case)
     if selected_week is not None:
@@ -69,7 +63,7 @@ def generate_weekly_network_heatmap(df_day, heatmap_data, selected_week=None):
             y1=6.5,
             xref='x',
             yref='y',
-            line=dict(color='black', width=2),
+            line=dict(color='black', width=4),
             fillcolor='rgba(0,0,0,0)',
             layer='above'
         )

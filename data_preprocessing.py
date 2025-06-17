@@ -220,5 +220,8 @@ def load_and_process_for_page3():
         aggfunc="sum",
         fill_value=0,
         observed=False)
+    
+    mois_ticks = df_day.groupby("Mois")["Semaine"].median().astype(int).to_dict()
+    mois_labels = df_day.groupby("Mois")["MoisStr"].first().to_dict()
 
-    return gdf, df_day, heatmap_data
+    return gdf, df_day, heatmap_data, mois_ticks, mois_labels
