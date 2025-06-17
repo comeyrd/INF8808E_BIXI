@@ -54,8 +54,8 @@ def layout():
                 id='right-side-viz',
                 style={'height': '75vh', 'marginTop': '20px'}
             )
-        ], style={'flex': '1', 'marginLeft': '20px'})
-    ], style={'display': 'flex', 'height': '85vh', 'padding': '10px'})
+        ], className='right-panel')
+    ], className='main-container')
 
 
 def register_callbacks(app):

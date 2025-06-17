@@ -25,7 +25,7 @@ def layout():
         dcc.Loading(
             id="loading-viz-display",
             type="circle",
-            color="#b71c1c",  # Couleur de l'animation
+            color="#b71c1c", 
             children=[
                 dcc.Graph(id='page3-viz-display')
             ]
