@@ -37,6 +37,8 @@ def load_and_process_for_page1():
     return map_df, line_chart_df, day_df, annual_df, monthly_df
 
 
+
+
 def load_and_process_for_page2():
     stations = pd.read_csv("./data/station_information.csv")  
     comptage = pd.read_csv("./data/bixi_comptage_week_2024.csv")
@@ -162,36 +164,88 @@ def load_and_process_for_page2():
 
 
 def load_and_process_for_page3():
-    #VIZ 3.2
+
     df_bixi_week_nbr = pd.read_csv("./data/bixi_comptage_week_2024.csv")
     df_bixi_week_nbr['week'] = pd.to_datetime(df_bixi_week_nbr['week'], unit='ms')
     df_bixi_week_nbr['year'] = df_bixi_week_nbr['week'].dt.year
     df_bixi_week_nbr['month'] = df_bixi_week_nbr['week'].dt.strftime('%b')
     df_bixi_week_nbr.loc[df_bixi_week_nbr['year'] == 2023, 'month'] = 'Jan'
-
     df_bixi_week_nbr['week'] = df_bixi_week_nbr['week'].dt.isocalendar().week
-
     df_bixi_week_nbr.loc[df_bixi_week_nbr['year'] == 2023, 'week'] = 0
 
-
-    df_bixi_week_nbr = df_bixi_week_nbr[['station_id','nb_passages','week',]]
+    df_bixi_week_nbr = df_bixi_week_nbr[['station_id', 'nb_passages', 'week']]
 
     df_bixi_index = pd.read_csv("./data/station_information.csv")
-    df_bixi_index.rename(columns={"id":"station_id","long":"lon"},inplace=True)
-    df_bixi_index = df_bixi_index[["station_id","name", "lat","lon"]]
-    df_full_data = pd.merge(df_bixi_week_nbr,df_bixi_index,how="left",on="station_id")
+    df_bixi_index.rename(columns={"id": "station_id", "long": "lon"}, inplace=True)
+    df_bixi_index = df_bixi_index[["station_id", "name", "lat", "lon"]]
+
+    df_full_data = pd.merge(df_bixi_week_nbr, df_bixi_index, how="left", on="station_id")
     geometry = [Point(xy) for xy in zip(df_full_data['lon'], df_full_data['lat'])]
     gdf = gpd.GeoDataFrame(df_full_data, geometry=geometry, crs="EPSG:4326")
     gdf = gdf.to_crs(epsg=3857)
-    gdf = gdf.sort_values(by="week",ascending=True)
-
-    #VIZ 3.1
-    df_raw = pd.read_csv("data/bixi_comptage_day_2024.csv")
-    df_raw["Date"] = pd.to_datetime(df_raw["day"], unit="ms")
-    df_raw["Count"] = df_raw["nb_passages"]
-    df_raw["WeekIndex"] = (df_raw["Date"] - pd.Timestamp("2024-01-01")).dt.days // 7
-    df_raw["Weekday"] = df_raw["Date"].dt.dayofweek
-    df_raw["WeekdayName"] = df_raw["Date"].dt.strftime("%A %d")
+    gdf = gdf.sort_values(by="week", ascending=True)
 
 
-    return gdf, df_raw
+    jours_fr_abbr = ["Lun", "Mar", "Mer", "Jeu", "Ven", "Sam", "Dim"]
+    jours_fr = ["Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi", "Dimanche"]
+    mois_fr = ["Jan", "Fév", "Mar", "Avr", "Mai", "Juin", "Juil", "Aoû", "Sep", "Oct", "Nov", "Déc"]
+
+    df = pd.read_csv("data/bixi_comptage_day_2024.csv")
+
+    df["Date"] = pd.to_datetime(df["day"], unit='ms')
+    df_day = df.groupby("Date")["station_id"].sum().reset_index(name="nb_passages")
+
+    # Supprimer les dates hors 2024
+    df_day = df_day[df_day["Date"].dt.year == 2024].copy()
+
+    # Ajouter les infos temporelles
+    df_day["WeekIndex"] = df_day["Date"].dt.isocalendar().week
+    df_day["Jour"] = df_day["Date"].dt.weekday
+    df_day["JourNum"] = df_day["Date"].dt.day
+    df_day["Mois"] = df_day["Date"].dt.month
+
+    # ⚠️ Corriger les jours de fin décembre ayant WeekIndex=1 → on force à 53
+    mask_end_dec = (df_day["Mois"] == 12) & (df_day["JourNum"] >= 30)
+    df_day.loc[mask_end_dec, "WeekIndex"] = 53
+
+    # Ajouter noms français
+    df_day["MoisStr"] = df_day["Mois"].apply(lambda x: mois_fr[x - 1])
+    df_day["JourStr"] = df_day["Jour"].apply(lambda x: jours_fr_abbr[x])
+    df_day["x_label"] = df_day.apply(
+        lambda row: f"{row['JourStr']} {row['JourNum']} {row['MoisStr']}", axis=1
+    )
+
+    # Liste ordonnée des jours de la semaine (0=Lun, 6=Dim)
+    jours_fr_ordered = ["Lun", "Mar", "Mer", "Jeu", "Ven", "Sam", "Dim"]
+    # S'assurer que 'JourStr' est une catégorie ordonnée
+    df_day["JourStr"] = pd.Categorical(df_day["JourStr"], categories=jours_fr_ordered, ordered=True)
+
+    heatmap_data = df_day.pivot_table(
+        index="JourStr",
+        columns="WeekIndex",
+        values="nb_passages",
+        aggfunc="sum",
+        fill_value=0,
+        observed=False
+    )
+    
+    mois_matrix = df_day.pivot_table(
+        index="JourStr",
+        columns="WeekIndex",
+        values="Mois",
+        aggfunc=lambda x: x.mode().iloc[0] if not x.mode().empty else None,
+        observed=False
+    )
+
+    
+    ## Trouver les x_labels où le mois change
+    #df_day_sorted = df_day.sort_values("Date")
+    #month_change_labels = df_day_sorted[df_day_sorted["Mois"].diff().fillna(0) != 0]["x_label"].tolist()
+#
+    ## Indices des colonnes dans la heatmap
+    #mois_separateurs = [heatmap_data.columns.get_loc(label) - 0.5 for label in month_change_labels if label in heatmap_data.columns]
+
+    # Construction des séparateurs de mois (index des changements de mois)
+    mois_separateurs = df_day.drop_duplicates("Mois", keep="first")["WeekIndex"].tolist()
+
+    return gdf, df_day, heatmap_data, mois_matrix

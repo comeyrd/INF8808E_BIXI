@@ -3,6 +3,7 @@ certifi==2025.4.26
 charset-normalizer==3.4.2
 click==8.2.1
 dash==3.0.4
+dash-extensions==1.0.20
 Flask==3.0.3
 Flask-Failsafe==0.2
 geopy==2.4.0
