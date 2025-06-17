@@ -24,7 +24,7 @@ sudo cp ./bixiviz.service /etc/systemd/system/
 
 sudo systemctl daemon-reload
 sudo systemctl start bixiviz
-sudo systemctl enable bixiviz
+sudo systemctl enable bixiviz  
 
 
 sudo cp bixiviz /etc/nginx/sites-available/
