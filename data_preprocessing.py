@@ -37,6 +37,8 @@ def load_and_process_for_page1():
     return map_df, line_chart_df, day_df, annual_df, monthly_df
 
 
+
+
 def load_and_process_for_page2():
     stations = pd.read_csv("./data/station_information.csv")  
     comptage = pd.read_csv("./data/bixi_comptage_week_2024.csv")
@@ -162,25 +164,48 @@ def load_and_process_for_page2():
 
 
 def load_and_process_for_page3():
+
     df_bixi_week_nbr = pd.read_csv("./data/bixi_comptage_week_2024.csv")
     df_bixi_week_nbr['week'] = pd.to_datetime(df_bixi_week_nbr['week'], unit='ms')
     df_bixi_week_nbr['year'] = df_bixi_week_nbr['week'].dt.year
     df_bixi_week_nbr['month'] = df_bixi_week_nbr['week'].dt.strftime('%b')
     df_bixi_week_nbr.loc[df_bixi_week_nbr['year'] == 2023, 'month'] = 'Jan'
-
     df_bixi_week_nbr['week'] = df_bixi_week_nbr['week'].dt.isocalendar().week
-
     df_bixi_week_nbr.loc[df_bixi_week_nbr['year'] == 2023, 'week'] = 0
 
-
-    df_bixi_week_nbr = df_bixi_week_nbr[['station_id','nb_passages','week',]]
+    df_bixi_week_nbr = df_bixi_week_nbr[['station_id', 'nb_passages', 'week']]
 
     df_bixi_index = pd.read_csv("./data/station_information.csv")
-    df_bixi_index.rename(columns={"id":"station_id","long":"lon"},inplace=True)
-    df_bixi_index = df_bixi_index[["station_id","name", "lat","lon"]]
-    df_full_data = pd.merge(df_bixi_week_nbr,df_bixi_index,how="left",on="station_id")
+    df_bixi_index.rename(columns={"id": "station_id", "long": "lon"}, inplace=True)
+    df_bixi_index = df_bixi_index[["station_id", "name", "lat", "lon"]]
+
+    df_full_data = pd.merge(df_bixi_week_nbr, df_bixi_index, how="left", on="station_id")
     geometry = [Point(xy) for xy in zip(df_full_data['lon'], df_full_data['lat'])]
     gdf = gpd.GeoDataFrame(df_full_data, geometry=geometry, crs="EPSG:4326")
     gdf = gdf.to_crs(epsg=3857)
-    gdf = gdf.sort_values(by="week",ascending=True)
-    return gdf
+    gdf = gdf.sort_values(by="week", ascending=True)
+
+
+    jours_fr_abbr = ["Lun", "Mar", "Mer", "Jeu", "Ven", "Sam", "Dim"]
+    mois_fr = ["Jan", "Fév", "Mar", "Avr", "Mai", "Juin", "Juil", "Aoû", "Sep", "Oct", "Nov", "Déc"]
+
+    df_day = pd.read_csv("data/bixi_comptage_day_2024.csv")
+    df_day["Date"] = pd.to_datetime(df_day["day"], unit="ms")
+    df_day["Count"] = df_day["nb_passages"]
+    df_day["WeekIndex"] = (df_day["Date"] - pd.Timestamp("2024-01-01")).dt.days // 7
+    df_day["Weekday"] = df_day["Date"].dt.dayofweek
+    df_day["WeekdayName"] = df_day["Date"].dt.strftime("%A %d")
+    df_day["Semaine"] = df_day["Date"].dt.isocalendar().week + 1
+    df_day["JourSemaine"] = df_day["Date"].dt.weekday
+    df_day["Jour"] = df_day["Date"].dt.day
+    df_day["Mois"] = df_day["Date"].dt.month
+    df_day["MoisStr"] = df_day["Mois"].map(lambda i: mois_fr[i - 1])
+    df_day["JourSemaineStr"] = pd.Categorical(
+        df_day["JourSemaine"].map(lambda i: jours_fr_abbr[i]),
+        categories=jours_fr_abbr,
+        ordered=True
+    )
+    df_day["WeekIndex"] = (df_day["Date"] - pd.Timestamp("2024-01-01")).dt.days // 7
+
+
+    return gdf, df_day

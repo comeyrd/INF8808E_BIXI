@@ -4,38 +4,15 @@ from shapely.geometry import box
 from shapely.ops import unary_union
 
 
-# Préparer les données dès le chargement
-df_raw = pd.read_csv("data/bixi_comptage_day_2024.csv")
-jours_fr_abbr = ["Lun", "Mar", "Mer", "Jeu", "Ven", "Sam", "Dim"]
-mois_fr = ["Jan", "Fév", "Mar", "Avr", "Mai", "Juin", "Juil", "Aoû", "Sep", "Oct", "Nov", "Déc"]
-
-df_raw["Date"] = pd.to_datetime(df_raw["day"], unit="ms")
-df_raw["WeekIndex"] = (df_raw["Date"] - pd.Timestamp("2024-01-01")).dt.days // 7
-df_raw["Count"] = df_raw["nb_passages"]
-df_raw["Semaine"] = df_raw["Date"].dt.isocalendar().week + 1
-# Préparer les données une seule fois
-df = df_raw.copy()
-df["JourSemaine"] = df["Date"].dt.weekday  # 0 = lundi
-df["JourSemaineStr"] = pd.Categorical(
-    df["JourSemaine"].map(lambda i: jours_fr_abbr[i]),
-    categories=jours_fr_abbr,
-    ordered=True
-)
-
-df["Mois"] = df["Date"].dt.month
-df["MoisStr"] = df["Mois"].map(lambda i: mois_fr[i - 1])
-df["Jour"] = df["Date"].dt.day
-df["Colonne"] = (df["Date"] - pd.to_datetime("2024-01-01")).dt.days  # un jour = une colonne
-df["Passages"] = df["nb_passages"]
-
-heatmap_data = df.pivot_table(
-    index="JourSemaineStr",  # lignes = jours de semaine
-    columns="Semaine",       # colonnes = semaines
-    values="Passages",
-    aggfunc="sum"
-)
-
-def generate_weekly_network_heatmap(selected_week=None):
+def generate_weekly_network_heatmap(df_day, selected_week=None):
+    heatmap_data = df_day.pivot_table(
+        index="JourSemaineStr",  # lignes = jours de semaine
+        columns="Semaine",       # colonnes = semaines
+        values="nb_passages",
+        aggfunc="sum",
+        fill_value=0,
+        observed=False)
+    
     fig = px.imshow(
         heatmap_data.values,
         x=heatmap_data.columns,
@@ -76,8 +53,8 @@ def generate_weekly_network_heatmap(selected_week=None):
 
 
     # ✅ Axe X : afficher les mois centrés
-    mois_ticks = df.groupby("Mois")["Semaine"].median().astype(int)
-    mois_labels = df.groupby("Mois")["MoisStr"].first()
+    mois_ticks = df_day.groupby("Mois")["Semaine"].median().astype(int)
+    mois_labels = df_day.groupby("Mois")["MoisStr"].first()
 
     fig.update_xaxes(
         tickmode="array",
@@ -86,12 +63,6 @@ def generate_weekly_network_heatmap(selected_week=None):
         title=None,
         showgrid=False
     )
-
-    fig.update_layout(
-        
-    )
-
-
 
     # ✅ Rectangle ajusté à une colonne (case)
     if selected_week is not None:
@@ -111,9 +82,9 @@ def generate_weekly_network_heatmap(selected_week=None):
     return fig
 
 
-def generate_bar_chart(week_index):
+def generate_bar_chart(df_day, week_index):
     # Filtrer uniquement la semaine sélectionnée
-    d = df_raw[df_raw["WeekIndex"] == week_index].copy()
+    d = df_day[df_day["WeekIndex"] == week_index].copy()
     if d.empty:
         return px.bar(title=f"Aucune donnée pour la semaine {week_index}")
 
