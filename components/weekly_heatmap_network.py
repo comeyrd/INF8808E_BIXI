@@ -58,6 +58,60 @@ def generate_weekly_network_heatmap(df_day, heatmap_data, ticks, labels, selecte
             layer='above'
         )
 
+    jours = heatmap_data.index
+    semaines = heatmap_data.columns
+
+    # Créer une matrice mois[jour, semaine]
+    mois_matrix = {
+        (jour, semaine): df_day[
+            (df_day["Semaine"] == semaine) & (df_day["JourSemaineStr"] == jour)
+        ]["Mois"].mode().iloc[0] if not df_day[
+            (df_day["Semaine"] == semaine) & (df_day["JourSemaineStr"] == jour)
+        ]["Mois"].mode().empty else None
+        for jour in jours for semaine in semaines
+    }
+
+    # 🔲 Tracer les barres verticales (séparation mois entre semaines)
+    for i in range(1, len(semaines)):
+        curr_week = semaines[i]
+        prev_week = semaines[i - 1]
+        for j, jour in enumerate(jours):
+            mois_curr = mois_matrix.get((jour, curr_week))
+            mois_prev = mois_matrix.get((jour, prev_week))
+            if mois_curr != mois_prev:
+                # Ligne verticale pour ce jour uniquement
+                fig.add_shape(
+                    type="line",
+                    x0=curr_week - 0.5,
+                    x1=curr_week - 0.5,
+                    y0=j - 0.5,
+                    y1=j + 0.5,
+                    xref='x',
+                    yref='y',
+                    line=dict(color="black", width=2)
+                )
+
+    # 🔲 Tracer les barres horizontales (séparation mois entre jours)
+    for j in range(1, len(jours)):
+        curr_jour = jours[j]
+        prev_jour = jours[j - 1]
+        for i, semaine in enumerate(semaines):
+            mois_curr = mois_matrix.get((curr_jour, semaine))
+            mois_prev = mois_matrix.get((prev_jour, semaine))
+            if mois_curr != mois_prev:
+                # Ligne horizontale pour cette semaine uniquement
+                fig.add_shape(
+                    type="line",
+                    x0=semaine - 0.5,
+                    x1=semaine + 0.5,
+                    y0=j - 0.5,
+                    y1=j - 0.5,
+                    xref='x',
+                    yref='y',
+                    line=dict(color="black", width=2)
+                )
+
+
     return fig
 
 
