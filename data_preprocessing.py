@@ -162,6 +162,7 @@ def load_and_process_for_page2():
 
 
 def load_and_process_for_page3():
+    #VIZ 3.2
     df_bixi_week_nbr = pd.read_csv("./data/bixi_comptage_week_2024.csv")
     df_bixi_week_nbr['week'] = pd.to_datetime(df_bixi_week_nbr['week'], unit='ms')
     df_bixi_week_nbr['year'] = df_bixi_week_nbr['week'].dt.year
@@ -183,4 +184,14 @@ def load_and_process_for_page3():
     gdf = gpd.GeoDataFrame(df_full_data, geometry=geometry, crs="EPSG:4326")
     gdf = gdf.to_crs(epsg=3857)
     gdf = gdf.sort_values(by="week",ascending=True)
-    return gdf
+
+    #VIZ 3.1
+    df_raw = pd.read_csv("data/bixi_comptage_day_2024.csv")
+    df_raw["Date"] = pd.to_datetime(df_raw["day"], unit="ms")
+    df_raw["Count"] = df_raw["nb_passages"]
+    df_raw["WeekIndex"] = (df_raw["Date"] - pd.Timestamp("2024-01-01")).dt.days // 7
+    df_raw["Weekday"] = df_raw["Date"].dt.dayofweek
+    df_raw["WeekdayName"] = df_raw["Date"].dt.strftime("%A %d")
+
+
+    return gdf, df_raw

@@ -38,7 +38,8 @@ def register_callbacks(app):
             return generate_animated_bixi_heatmap(gdf), {}, {'display': 'none'}
 
         week = int(clickData['points'][0]['x']) if clickData else None
-        fig_heatmap = generate_weekly_network_heatmap(selected_week=week)
+        df = data_store.page3_viz1_df
+        fig_heatmap = generate_weekly_network_heatmap(df,selected_week=week)
 
         if week is not None:
             fig_bar = generate_bar_chart(week)

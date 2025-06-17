@@ -26,6 +26,21 @@ sudo systemctl daemon-reload
 sudo systemctl start bixiviz
 sudo systemctl enable bixiviz  
 
+bixiviz
+```
+server {
+    listen 80;
+    server_name inf8808.ceyraud.com ;
+
+    location / {
+        proxy_pass http://127.0.0.1:8000;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+}
+```
 
 sudo cp bixiviz /etc/nginx/sites-available/
 

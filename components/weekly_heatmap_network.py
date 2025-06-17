@@ -2,15 +2,8 @@ import pandas as pd
 import plotly.express as px
 import numpy as np
 
-# Préparer les données dès le chargement
-df_raw = pd.read_csv("data/bixi_comptage_day_2024.csv")
-df_raw["Date"] = pd.to_datetime(df_raw["day"], unit="ms")
-df_raw["Count"] = df_raw["nb_passages"]
-df_raw["WeekIndex"] = (df_raw["Date"] - pd.Timestamp("2024-01-01")).dt.days // 7
-df_raw["Weekday"] = df_raw["Date"].dt.dayofweek
-df_raw["WeekdayName"] = df_raw["Date"].dt.strftime("%A %d")
 
-def generate_weekly_network_heatmap(selected_week=None):
+def generate_weekly_network_heatmap(df_raw,selected_week=None):
     fig = px.density_heatmap(
         df_raw,
         x="WeekIndex",
