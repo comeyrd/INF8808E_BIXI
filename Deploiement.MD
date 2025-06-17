@@ -8,7 +8,7 @@ sudo nano /etc/systemd/system/bixiviz.service
 Description=Gunicorn instance to serve bixiviz
 After=network.target
  
-[Service]
+[Service] 
 User=comero
 Group=www-data
 WorkingDirectory=/home/comero/INF8808E_BIXI
