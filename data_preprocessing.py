@@ -229,12 +229,23 @@ def load_and_process_for_page3():
         observed=False
     )
     
-    # Trouver les x_labels où le mois change
-    df_day_sorted = df_day.sort_values("Date")
-    month_change_labels = df_day_sorted[df_day_sorted["Mois"].diff().fillna(0) != 0]["x_label"].tolist()
+    mois_matrix = df_day.pivot_table(
+        index="JourStr",
+        columns="WeekIndex",
+        values="Mois",
+        aggfunc=lambda x: x.mode().iloc[0] if not x.mode().empty else None,
+        observed=False
+    )
 
-    # Indices des colonnes dans la heatmap
-    mois_separateurs = [heatmap_data.columns.get_loc(label) - 0.5 for label in month_change_labels if label in heatmap_data.columns]
+    
+    ## Trouver les x_labels où le mois change
+    #df_day_sorted = df_day.sort_values("Date")
+    #month_change_labels = df_day_sorted[df_day_sorted["Mois"].diff().fillna(0) != 0]["x_label"].tolist()
+#
+    ## Indices des colonnes dans la heatmap
+    #mois_separateurs = [heatmap_data.columns.get_loc(label) - 0.5 for label in month_change_labels if label in heatmap_data.columns]
 
+    # Construction des séparateurs de mois (index des changements de mois)
+    mois_separateurs = df_day.drop_duplicates("Mois", keep="first")["WeekIndex"].tolist()
 
-    return gdf, df_day, heatmap_data, mois_separateurs
+    return gdf, df_day, heatmap_data, mois_matrix

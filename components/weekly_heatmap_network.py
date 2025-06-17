@@ -6,7 +6,7 @@ import plotly.graph_objects as go
 import numpy as np
 
 
-def generate_weekly_network_heatmap(df_day, heatmap_data, mois_separateurs, selected_week=None):
+def generate_weekly_network_heatmap(df_day, heatmap_data, mois_matrix, selected_week=None):
     z = heatmap_data.values.astype(float)  # Assure un tableau float
     z[z == 0] = np.nan  # Ignore les zéros dans l'affichage
 
@@ -23,14 +23,52 @@ def generate_weekly_network_heatmap(df_day, heatmap_data, mois_separateurs, sele
         zmax=np.nanmax(z)
     ))
     
-    for x_pos in mois_separateurs:
-        fig.add_shape(
-            type="line",
-            x0=x_pos, x1=x_pos,
-            y0=-0.5, y1=6.5,
-            line=dict(color="black", width=2),
-            xref="x", yref="y"
-        )
+    jours = heatmap_data.index
+    semaines = heatmap_data.columns
+    
+    shapes = []
+
+    # Barres verticales
+    for i in range(1, len(semaines)):
+        curr_week = semaines[i]
+        prev_week = semaines[i - 1]
+        for j, jour in enumerate(jours):
+            mois_curr = mois_matrix.at[jour, curr_week]
+            mois_prev = mois_matrix.at[jour, prev_week]
+            if mois_curr != mois_prev:
+                shapes.append(dict(
+                    type="line",
+                    x0=curr_week - 0.5,
+                    x1=curr_week - 0.5,
+                    y0=j - 0.5,
+                    y1=j + 0.5,
+                    xref='x',
+                    yref='y',
+                    line=dict(color="black", width=2)
+                ))
+
+    # Barres horizontales
+    for j in range(1, len(jours)):
+        curr_jour = jours[j]
+        prev_jour = jours[j - 1]
+        for i, semaine in enumerate(semaines):
+            mois_curr = mois_matrix.at[curr_jour, semaine]
+            mois_prev = mois_matrix.at[prev_jour, semaine]
+            if mois_curr != mois_prev:
+                shapes.append(dict(
+                    type="line",
+                    x0=semaine - 0.5,
+                    x1=semaine + 0.5,
+                    y0=j - 0.5,
+                    y1=j - 0.5,
+                    xref='x',
+                    yref='y',
+                    line=dict(color="black", width=2)
+                ))
+
+    # Appliquer tous les shapes d’un coup
+    fig.update_layout(shapes=shapes)
+
 
     mois_fr_abbr = ["Jan", "Fév", "Mar", "Avr", "Mai", "Juin",
                 "Juil", "Aoû", "Sep", "Oct", "Nov", "Déc"]
@@ -114,6 +152,10 @@ def generate_bar_chart(df_day, week_number, gloabal_max=100, gloabal_min=0):
         title=None
     )
 
+    # Calcul de min/max local avec petite marge pour accentuer les fluctuations
+    y_min = max(0, agg["nb_passages"].min() * 0.95)
+    y_max = agg["nb_passages"].max() * 1.05
+
     fig.update_layout(
         title=None,
         xaxis_title=None,
@@ -121,11 +163,13 @@ def generate_bar_chart(df_day, week_number, gloabal_max=100, gloabal_min=0):
         coloraxis_showscale=False,
         yaxis=dict(
             showgrid=False,
-            showticklabels=False
+            showticklabels=False,
+            range=[y_min, y_max]
         ),
         plot_bgcolor='rgba(0,0,0,0)',
         paper_bgcolor='rgba(0,0,0,0)'
     )
+
 
     fig.update_traces(
         hoverinfo='skip',
