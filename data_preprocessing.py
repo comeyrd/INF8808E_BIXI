@@ -238,14 +238,4 @@ def load_and_process_for_page3():
     )
 
     
-    ## Trouver les x_labels où le mois change
-    #df_day_sorted = df_day.sort_values("Date")
-    #month_change_labels = df_day_sorted[df_day_sorted["Mois"].diff().fillna(0) != 0]["x_label"].tolist()
-#
-    ## Indices des colonnes dans la heatmap
-    #mois_separateurs = [heatmap_data.columns.get_loc(label) - 0.5 for label in month_change_labels if label in heatmap_data.columns]
-
-    # Construction des séparateurs de mois (index des changements de mois)
-    mois_separateurs = df_day.drop_duplicates("Mois", keep="first")["WeekIndex"].tolist()
-
     return gdf, df_day, heatmap_data, mois_matrix
