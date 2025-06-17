@@ -22,8 +22,22 @@ def layout():
 
         dcc.Store(id='page3-selected-week', storage_type='memory'),
 
-        dcc.Graph(id='page3-viz-display'),
-        dcc.Graph(id='page3-bar-chart', style={'display': 'none'}, config={'staticPlot': True}),
+        dcc.Loading(
+            id="loading-viz-display",
+            type="circle",
+            color="#b71c1c",  # Couleur de l'animation
+            children=[
+                dcc.Graph(id='page3-viz-display')
+            ]
+        ),
+        dcc.Loading(
+            id="loading-bar-chart",
+            type="circle",  # ou 'dot', 'default'
+            color="#b71c1c",  # Couleur de l'animation
+            children=[
+                dcc.Graph(id='page3-bar-chart', style={'display': 'none'})
+            ]
+        )
     ], className='page-content')
 
 
