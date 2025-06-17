@@ -32,14 +32,22 @@ def generate_weekly_network_heatmap(df_day, heatmap_data, mois_separateurs, sele
             xref="x", yref="y"
         )
 
+    mois_fr_abbr = ["Jan", "Fév", "Mar", "Avr", "Mai", "Juin",
+                "Juil", "Aoû", "Sep", "Oct", "Nov", "Déc"]
+
+    mois_ticks = df_day.groupby("Mois")["WeekIndex"].median().astype(int)
+    mois_labels = mois_ticks.index.map(lambda m: mois_fr_abbr[m - 1])
+    
     fig.update_layout(
         title_text="Fréquentation quotidienne du réseau cyclable en 2024",
         title_x=0.5,
         title_font=dict(size=20),
-        xaxis=dict(
+            xaxis=dict(
             title="",
             showgrid=False,
-            tickangle=45,        # Incliner les labels pour éviter le chevauchement
+            tickmode="array",
+            tickvals=mois_ticks.tolist(),
+            ticktext=mois_labels.tolist(),
             automargin=True,
             showline=False
         ),
