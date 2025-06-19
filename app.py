@@ -15,7 +15,7 @@ app.layout = html.Div([
 
     html.Header(children=[
         html.H1("Utilisation du réseau cyclable à Montréal"),
-        html.P("Analyse des données de trafic et de BIXI pour l'été 2024"),
+        html.P("Analyse des données de trafic et de BIXI durant l'année 2024"),
         html.Div(id='nav-buttons', style={'display': 'flex',
                                           'gap': '10px',
                                           'marginBottom': '10px',
