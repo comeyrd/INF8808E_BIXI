@@ -128,7 +128,7 @@ def generate_bar_chart(df_day, week_number, gloabal_max=100, gloabal_min=0):
     
     jours_fr = ["Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi", "Dimanche"]
     mois_fr = ["Janvier", "Février", "Mars", "Avril", "Mai", "Juin",
-            "Juillet", "Août", "Septembre", "Octobre", "Novembre", "Décembre"]
+               "Juillet", "Août", "Septembre", "Octobre", "Novembre", "Décembre"]
 
     d["x_label"] = d.apply(
         lambda row: f"{jours_fr[row['Jour']]} {row['JourNum']} {mois_fr[row['Mois'] - 1]}", axis=1
@@ -152,28 +152,27 @@ def generate_bar_chart(df_day, week_number, gloabal_max=100, gloabal_min=0):
         title=None
     )
 
-    # Calcul de min/max local avec petite marge pour accentuer les fluctuations
-    y_min = max(0, agg["nb_passages"].min() * 0.95)
+    # Forcer 0 comme borne inférieure et amplifier légèrement la borne supérieure
     y_max = agg["nb_passages"].max() * 1.05
 
     fig.update_layout(
         title=None,
         xaxis_title=None,
-        yaxis_title=None,
+        yaxis_title="Nombre de passages",
         coloraxis_showscale=False,
         yaxis=dict(
             showgrid=False,
             showticklabels=False,
-            range=[y_min, y_max]
+            range=[0, y_max]  # 0 est forcé ici
         ),
         plot_bgcolor='rgba(0,0,0,0)',
         paper_bgcolor='rgba(0,0,0,0)'
     )
 
-
     fig.update_traces(
-        hoverinfo='skip',
-        selector=dict(type='heatmap')
+        hovertemplate='%{x}<br>Passages : %{y:,.0f} passages',
+        texttemplate='%{text:,}',
+        textposition='outside'
     )
 
     return fig
