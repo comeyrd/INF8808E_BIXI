@@ -14,6 +14,7 @@ def generate_line_chart_traffic(station_id,line_chart_df,station_name):
         name=f'Trafic station {station_id}',
         line=dict(color='red', width=2),
         marker=dict(size=6, symbol='circle'),
+        hovertemplate="<b>Semaine :</b> %{x|%d %b %Y}<br><b>Passages :</b> %{y:,.0f}<extra></extra>"
     ))
 
     fig.update_layout(
@@ -28,7 +29,7 @@ def generate_line_chart_traffic(station_id,line_chart_df,station_name):
     yaxis=dict(
         range=[0, line_chart_df['nb_passages'].max() * 1.1]  # Limite y max = 10% au-dessus du max des données
     ),
-    template='plotly_white'
+    template='plotly_white',
 )
 
     return fig

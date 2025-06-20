@@ -104,6 +104,33 @@ def generate_stacked_bar_chart_nearby_stations(station_id, map_df, monthly_df):
         .sort_values(by=['is_selected', 'distance_km'], ascending=[False, True])
         ['x_label'].tolist()
     )
+    
+    # Obtenir tous les mois présents
+    all_months = sorted(df_filtered['month'].unique())
+
+    # Obtenir toutes les stations considérées
+    stations = df_filtered[['station_id', 'x_label']].drop_duplicates()
+
+    # Produit cartésien station × mois
+    full_index = pd.MultiIndex.from_product(
+        [stations['station_id'], all_months], names=['station_id', 'month']
+    ).to_frame(index=False)
+
+    # Rejoindre pour inclure les distances et noms
+    full_df = full_index.merge(stations, on='station_id', how='left')
+    full_df = full_df.merge(
+        stations_info[['station_id', 'distance_km']], on='station_id', how='left'
+    )
+
+    # Fusionner avec les données existantes
+    df_filtered = full_df.merge(
+        df_filtered[['station_id', 'month', 'nb_passages']], 
+        on=['station_id', 'month'], how='left'
+    )
+
+    # Remplir les valeurs manquantes avec 0
+    df_filtered['nb_passages'] = df_filtered['nb_passages'].fillna(0)
+
     df_filtered['x_label'] = pd.Categorical(df_filtered['x_label'], categories=station_order, ordered=True)
     df_filtered = df_filtered.sort_values(['x_label', 'month'])
 

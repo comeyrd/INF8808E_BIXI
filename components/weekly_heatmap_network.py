@@ -7,28 +7,48 @@ import numpy as np
 
 
 def generate_weekly_network_heatmap(df_day, heatmap_data, mois_matrix, selected_week=None):
-    z = heatmap_data.values.astype(float)  # Assure un tableau float
-    z[z == 0] = np.nan  # Ignore les zéros dans l'affichage
+
+    z = heatmap_data.values.astype(float)
+    z[z == 0] = np.nan
+
+    # Générer les étiquettes de date
+    jours = heatmap_data.index
+    semaines = heatmap_data.columns
+
+    # Créer une table des dates lisibles
+    jours_fr = ["Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi", "Dimanche"]
+    mois_fr = ["Janvier", "Février", "Mars", "Avril", "Mai", "Juin",
+               "Juillet", "Août", "Septembre", "Octobre", "Novembre", "Décembre"]
+
+    label_matrix = []
+    for jour in jours:
+        row_labels = []
+        for semaine in semaines:
+            sous_df = df_day[(df_day["WeekIndex"] == semaine) & (df_day["JourStr"] == jour)]
+            if not sous_df.empty:
+                r = sous_df.iloc[0]
+                label = f"{jours_fr[r['Jour']]} {r['JourNum']} {mois_fr[r['Mois'] - 1]}"
+            else:
+                label = ""
+            row_labels.append(label)
+        label_matrix.append(row_labels)
 
     fig = go.Figure(data=go.Heatmap(
         z=z,
-        x=heatmap_data.columns,
-        y=heatmap_data.index,
+        x=semaines,
+        y=jours,
+        customdata=label_matrix,
         colorscale='Reds',
-        hovertemplate="<br>Jour : %{y}<br>Passages : %{z}<extra></extra>",
+        hovertemplate="<b>Date :</b> %{customdata}<br><b>Passages :</b> %{z:,.0f} passages<extra></extra>",
         showscale=True,
         xgap=2,
         ygap=2,
-        zmin=np.nanmin(z),  # Échelle basée uniquement sur les vraies valeurs
-        zmax=np.nanmax(z)
+        zmin=np.nanmin(z),
+        zmax=np.nanmax(z),
+        coloraxis="coloraxis",
     ))
-    
-    jours = heatmap_data.index
-    semaines = heatmap_data.columns
-    
-    shapes = []
 
-    # Barres verticales
+    shapes = []
     for i in range(1, len(semaines)):
         curr_week = semaines[i]
         prev_week = semaines[i - 1]
@@ -47,7 +67,6 @@ def generate_weekly_network_heatmap(df_day, heatmap_data, mois_matrix, selected_
                     line=dict(color="black", width=2)
                 ))
 
-    # Barres horizontales
     for j in range(1, len(jours)):
         curr_jour = jours[j]
         prev_jour = jours[j - 1]
@@ -66,12 +85,11 @@ def generate_weekly_network_heatmap(df_day, heatmap_data, mois_matrix, selected_
                     line=dict(color="black", width=2)
                 ))
 
-    # Appliquer tous les shapes d’un coup
     fig.update_layout(shapes=shapes)
 
-
-    mois_fr_abbr = ["Jan", "Fév", "Mar", "Avr", "Mai", "Juin",
-                "Juil", "Aoû", "Sep", "Oct", "Nov", "Déc"]
+    # --- TICKS MOIS ---
+    mois_fr_abbr = ["Jan", "Fév", "Mars", "Avr", "Mai", "Juin",
+                    "Juil", "Août", "Sept", "Oct", "Nov", "Déc"]
 
     mois_ticks = df_day.groupby("Mois")["WeekIndex"].median().astype(int)
     mois_labels = mois_ticks.index.map(lambda m: mois_fr_abbr[m - 1])
@@ -80,7 +98,7 @@ def generate_weekly_network_heatmap(df_day, heatmap_data, mois_matrix, selected_
         title_text="Fréquentation quotidienne du réseau cyclable en 2024",
         title_x=0.5,
         title_font=dict(size=20),
-            xaxis=dict(
+        xaxis=dict(
             title="",
             showgrid=False,
             tickmode="array",
@@ -128,7 +146,7 @@ def generate_bar_chart(df_day, week_number, gloabal_max=100, gloabal_min=0):
     
     jours_fr = ["Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi", "Dimanche"]
     mois_fr = ["Janvier", "Février", "Mars", "Avril", "Mai", "Juin",
-            "Juillet", "Août", "Septembre", "Octobre", "Novembre", "Décembre"]
+               "Juillet", "Août", "Septembre", "Octobre", "Novembre", "Décembre"]
 
     d["x_label"] = d.apply(
         lambda row: f"{jours_fr[row['Jour']]} {row['JourNum']} {mois_fr[row['Mois'] - 1]}", axis=1
@@ -152,28 +170,27 @@ def generate_bar_chart(df_day, week_number, gloabal_max=100, gloabal_min=0):
         title=None
     )
 
-    # Calcul de min/max local avec petite marge pour accentuer les fluctuations
-    y_min = max(0, agg["nb_passages"].min() * 0.95)
+    # Forcer 0 comme borne inférieure et amplifier légèrement la borne supérieure
     y_max = agg["nb_passages"].max() * 1.05
 
     fig.update_layout(
         title=None,
         xaxis_title=None,
-        yaxis_title=None,
+        yaxis_title="Nombre de passages",
         coloraxis_showscale=False,
         yaxis=dict(
             showgrid=False,
             showticklabels=False,
-            range=[y_min, y_max]
+            range=[0, y_max]  # 0 est forcé ici
         ),
         plot_bgcolor='rgba(0,0,0,0)',
         paper_bgcolor='rgba(0,0,0,0)'
     )
 
-
     fig.update_traces(
-        hoverinfo='skip',
-        selector=dict(type='heatmap')
+        hovertemplate='%{x}<br>Passages : %{y:,.0f} passages',
+        texttemplate='%{text:,}',
+        textposition='outside'
     )
 
     return fig
