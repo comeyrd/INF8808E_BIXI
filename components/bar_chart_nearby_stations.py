@@ -59,7 +59,7 @@ def generate_bar_chart_nearby_stations(station_id, map_df, annual_df):
         ))
 
     fig.update_layout(
-        title=f'Passage annuel à {selected_name} et stations proches',
+        title=f'Passage annuel comparé aux stations proches',
         yaxis_title='Nombre de passages',
         xaxis_title='',
         template='plotly_white',

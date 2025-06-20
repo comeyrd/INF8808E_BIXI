@@ -18,7 +18,7 @@ def generate_line_chart_traffic(station_id,line_chart_df,station_name):
     ))
 
     fig.update_layout(
-    title=f'Évolution du trafic en 2024 sur la station {station_name}',
+    title=f'Évolution du trafic en 2024',
     xaxis_title='Semaine',
     yaxis_title='Nombre de passages',
     xaxis=dict(
