@@ -38,14 +38,13 @@ def generate_weekly_network_heatmap(df_day, heatmap_data, mois_matrix, selected_
         x=semaines,
         y=jours,
         customdata=label_matrix,
-        colorscale='Reds',
+        colorscale='rainbow',
         hovertemplate="<b>Date :</b> %{customdata}<br><b>Passages :</b> %{z:,.0f} passages<extra></extra>",
         showscale=True,
         xgap=2,
         ygap=2,
         zmin=np.nanmin(z),
         zmax=np.nanmax(z),
-        coloraxis="coloraxis",
     ))
 
     shapes = []
@@ -165,7 +164,7 @@ def generate_bar_chart(df_day, week_number, gloabal_max=100, gloabal_min=0):
         y="nb_passages",
         color="nb_passages",
         text="nb_passages",
-        color_continuous_scale="Reds",
+        color_continuous_scale="rainbow",
         range_color=[gloabal_min, gloabal_max],
         title=None
     )
