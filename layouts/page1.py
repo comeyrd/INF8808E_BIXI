@@ -35,7 +35,6 @@ def layout():
                 ],
                 value='line',
                 clearable=False,
-                style={'width': '80%', 'display': 'inline-block'}
             ),
             html.Div(
                 dcc.RadioItems(
@@ -69,7 +68,7 @@ def register_callbacks(app):
             name = point['hovertext']
             station_id = point['customdata']
             return f"📍 Station sélectionnée : {name} (ID: {station_id})"
-        return "🧭 Cliquez sur un point pour voir les données d’une station."
+        return "📍 Station sélectionnée : Edouard-Montpetit / de Stirling (ID: 1061)"
 
     @app.callback(
         Output('right-side-viz', 'figure'),

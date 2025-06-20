@@ -12,7 +12,6 @@ def generate_bar_chart_daily_traffic(station_id, day_chart_df, station_name):
 
     # Mapper les jours à des noms lisibles
     jours = ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi', 'Dimanche']
-    couleurs = ['#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd', '#8c564b', '#e377c2']  # couleurs par jour
 
     df_station['jour_nom'] = df_station['jour_semaine'].map(lambda x: jours[x])
 
@@ -24,15 +23,15 @@ def generate_bar_chart_daily_traffic(station_id, day_chart_df, station_name):
     fig.add_trace(go.Bar(
         x=df_grouped.index,
         y=df_grouped.values,
-        marker_color=couleurs,
+        marker_color='red', # Set all bars to this fixed color
         hovertemplate="<b>%{x}</b><br>Passages : %{y:,.0f}<extra></extra>"
     ))
 
     fig.update_layout(
-        title=f"Trafic total par jour de la semaine – {station_name}",
+        title=f"Trafic total par jour de la semaine",
         xaxis_title="Jour de la semaine",
         yaxis_title="Nombre total de passages",
-        template='plotly_white'
+        template='plotly_white',
     )
 
     return fig
